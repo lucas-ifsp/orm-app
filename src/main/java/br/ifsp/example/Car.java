@@ -1,8 +1,9 @@
 package br.ifsp.example;
 
-import br.ifsp.orm.Entity;
+import br.ifsp.orm.EntityId;
 
-public class Car implements Entity {
+public class Car {
+    @EntityId
     private String plate;
     private String brand;
     private int year;
@@ -14,11 +15,6 @@ public class Car implements Entity {
         this.plate = plate;
         this.brand = brand;
         this.year = year;
-    }
-
-    @Override
-    public String idFieldName() {
-        return "plate";
     }
 
     public String getPlate() {
@@ -47,10 +43,6 @@ public class Car implements Entity {
 
     @Override
     public String toString() {
-        return "Car{" +
-               "plate='" + plate + '\'' +
-               ", brand='" + brand + '\'' +
-               ", year=" + year +
-               '}';
+        return String.format("| Plate = %s | Slices = %s | Year = %d |", plate, brand, year);
     }
 }
