@@ -15,16 +15,15 @@ public class DatabaseBuilder {
     private static final String ENTITIES_PACKAGE = "br.ifsp.example";
 
     public static void main(String[] args) throws SQLException {
-        DatabaseBuilder.tableFromOrmEntity();
+        DatabaseBuilder.createTableFromOrmEntities();
     }
 
-    private static void tableFromOrmEntity() throws SQLException {
+    private static void createTableFromOrmEntities() throws SQLException {
         Reflections reflections = new Reflections(ENTITIES_PACKAGE);
         Set<Class<?>> ormEntities = reflections.getTypesAnnotatedWith(OrmEntity.class);
-        ormEntities.stream().map(DatabaseBuilder::generateTable).forEach(t -> {
-            System.out.println(t);
-            createTable(t);
-        });
+        ormEntities.stream()
+                .map(DatabaseBuilder::generateTable)
+                .forEach(DatabaseBuilder::createTable);
     }
 
     private static String generateColumn(Field field, OrmEntity.SGBD sgbd) {
