@@ -1,45 +1,53 @@
 package br.ifsp.example;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+import br.ifsp.orm.ConnectionFactory;
+import br.ifsp.orm.OrmEntity;
+import br.ifsp.orm.mappers.TypeMapper;
+import org.reflections.Reflections;
+
+import java.lang.reflect.Field;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DatabaseBuilder {
-    private final Connection connection;
-
-    public DatabaseBuilder() throws SQLException {
-        this.connection = DriverManager.getConnection("jdbc:sqlite:database.db");;
-    }
+    private static final String ENTITIES_PACKAGE = "br.ifsp.example";
 
     public static void main(String[] args) throws SQLException {
-        DatabaseBuilder builder = new DatabaseBuilder();
-        builder.createCarTable();
-        builder.createSushiTable();
+        DatabaseBuilder.createTableFromOrmEntities();
     }
 
-    private void createCarTable() throws SQLException {
-        String sql = """
-                    CREATE TABLE IF NOT EXISTS CAR (
-                        plate TEXT PRIMARY KEY,
-                        brand TEXT,
-                        year INTEGER
-                    )
-                """;
-
-        var stmt = connection.createStatement();
-        stmt.execute(sql);
+    private static void createTableFromOrmEntities() throws SQLException {
+        Reflections reflections = new Reflections(ENTITIES_PACKAGE);
+        Set<Class<?>> ormEntities = reflections.getTypesAnnotatedWith(OrmEntity.class);
+        ormEntities.stream()
+                .map(DatabaseBuilder::generateTable)
+                .forEach(DatabaseBuilder::createTable);
     }
 
-    private void createSushiTable() throws SQLException {
-        String sql = """
-        CREATE TABLE IF NOT EXISTS SUSHI (
-            name TEXT PRIMARY KEY,
-            price REAL,
-            quantity INTEGER
-        );
-        """;
+    private static String generateColumn(Field field, OrmEntity.SGBD sgbd) {
+        return String.format("\t%s %s", field.getName(), TypeMapper.fromSgbd(field.getType(), sgbd));
+    }
 
-        var stmt = connection.createStatement();
-        stmt.execute(sql);
+    private static String generateTable(Class<?> type) {
+        final String tableName = type.getSimpleName().toUpperCase();
+        final OrmEntity annotation = type.getAnnotation(OrmEntity.class);
+
+        final Field[] fields = type.getDeclaredFields();
+        String columns = Arrays.stream(fields)
+                .map(f -> generateColumn(f, annotation.value()))
+                .collect(Collectors.joining(",\n"));
+
+        return String.format("CREATE TABLE IF NOT EXISTS %s (\n%s\n)", tableName, columns);
+    }
+
+    private static void createTable(String tableSql) {
+        try {
+            final var stmt = ConnectionFactory.getStatement();
+            stmt.execute(tableSql);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
