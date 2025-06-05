@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class EntityManager<T> {
-
     private final T entity;
 
     EntityManager(Class<T> entityClass) {
@@ -61,5 +60,9 @@ public class EntityManager<T> {
         } catch (Exception e) {
             throw new MyORMException(e.getMessage());
         }
+    }
+
+    public static int compareFieldWithEntityId(Field field) {
+        return field.isAnnotationPresent(EntityId.class) ? 1 : 0;
     }
 }

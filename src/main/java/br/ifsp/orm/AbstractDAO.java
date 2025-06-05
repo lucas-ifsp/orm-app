@@ -5,9 +5,7 @@ import br.ifsp.orm.mappers.TypeMapper;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public abstract class AbstractDAO<T, K> implements Registrable<T>, Retrievable<T, K> {
     @SuppressWarnings("unchecked")
@@ -62,14 +60,16 @@ public abstract class AbstractDAO<T, K> implements Registrable<T>, Retrievable<T
 
     public List<T> findAll() throws SQLException {
         final List<T> entities = new ArrayList<>();
-        final Class<T> entity = getParameterizedEntityType();
-        final EntityManager<T> entityManager = new EntityManager<>(entity);
-        final String sql = SQLBuilder.findAll(entity);
+        final Class<T> type = getParameterizedEntityType();
+
+        final String sql = SQLBuilder.findAll(type);
 
         try (final var stmt = ConnectionFactory.getPreparedStatement(sql)) {
             final ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                for (final Field field : entity.getDeclaredFields()) {
+                EntityManager<T> entityManager = new EntityManager<>(type);
+
+                for (final Field field : type.getDeclaredFields()) {
                     final Object value = rs.getObject(field.getName());
                     entityManager.setValue(field, value);
                 }
@@ -96,10 +96,14 @@ public abstract class AbstractDAO<T, K> implements Registrable<T>, Retrievable<T
     public void update(T t) throws SQLException {
         final EntityManager<T> entityManager = new EntityManager<>(t);
         final String sql = SQLBuilder.update(t.getClass(), entityManager.getEntityId().getName());
+
         try (final var stmt = ConnectionFactory.getPreparedStatement(sql)) {
-            final Field[] declaredFields = t.getClass().getDeclaredFields();
-            for (int i = 0; i < declaredFields.length; i++) {
-                final Field field = declaredFields[i];
+            final List<Field> declaredFields = Arrays.stream(t.getClass().getDeclaredFields())
+                    .sorted(Comparator.comparing(EntityManager::compareFieldWithEntityId))
+                    .toList();
+
+            for (int i = 0; i < declaredFields.size(); i++) {
+                final Field field = declaredFields.get(i);
                 final Object value = entityManager.getFieldValue(field.getName());
                 final int sqlType = TypeMapper.toSql(field.getType());
                 stmt.setObject(i + 1, value, sqlType);
