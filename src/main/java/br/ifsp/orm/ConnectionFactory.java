@@ -1,9 +1,6 @@
 package br.ifsp.orm;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class ConnectionFactory {
     private static Connection connection;
@@ -15,6 +12,10 @@ public class ConnectionFactory {
             connection = DriverManager.getConnection("jdbc:sqlite:database.db");
         }
         return connection;
+    }
+
+    public static Statement getStatement() throws SQLException {
+        return getConnection().createStatement();
     }
 
     public static PreparedStatement getPreparedStatement(String sql) throws SQLException {

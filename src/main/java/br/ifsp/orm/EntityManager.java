@@ -17,7 +17,7 @@ public class EntityManager<T> {
         }
     }
 
-    EntityManager(T entity) {
+    public EntityManager(T entity) {
         this.entity = entity;
     }
 
@@ -25,7 +25,7 @@ public class EntityManager<T> {
         return entity;
     }
 
-    Field getEntityId() {
+    public Field getEntityId() {
         final Class<?> entityClass = entity.getClass();
 
         final List<Field> annotatedFields = Arrays.stream(entityClass.getDeclaredFields())
@@ -41,11 +41,11 @@ public class EntityManager<T> {
         return annotatedFields.getFirst();
     }
 
-    String getFieldValue(String fieldName) {
+    public Object getFieldValue(String fieldName) {
         String methodName = "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
         try {
             final Method method = entity.getClass().getMethod(methodName);
-            return method.invoke(entity).toString();
+            return method.invoke(entity);
         } catch (Exception e) {
             throw new MyORMException(e.getMessage());
         }

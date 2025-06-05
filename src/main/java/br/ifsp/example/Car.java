@@ -1,7 +1,9 @@
 package br.ifsp.example;
 
 import br.ifsp.orm.EntityId;
+import br.ifsp.orm.OrmEntity;
 
+@OrmEntity
 public class Car {
     @EntityId
     private String plate;
