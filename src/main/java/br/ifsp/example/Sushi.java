@@ -1,5 +1,6 @@
 package br.ifsp.example;
 
+import br.ifsp.orm.annotations.Column;
 import br.ifsp.orm.annotations.EntityId;
 import br.ifsp.orm.annotations.OrmEntity;
 
@@ -7,6 +8,7 @@ import br.ifsp.orm.annotations.OrmEntity;
 public class Sushi {
     @EntityId
     private String name;
+    @Column("unitPrice")
     private Double price;
     private int quantity;
 

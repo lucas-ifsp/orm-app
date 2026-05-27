@@ -8,7 +8,7 @@ Simple ORM app with Generics, Reflection, and Annotations.
 ## Next Features
 
 > ### Entity Related
-> - [ ] Add support for `@Column` annotation to specify column names and types.
+> - [x] Add support for `@Column` annotation to specify column names and types.
 > - [ ] Add support for custom data types.
 
 > ### Query Building API
